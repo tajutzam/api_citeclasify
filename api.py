@@ -427,6 +427,10 @@ def get_data():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 400
+    
+@app.route("/")
+def test_api():
+    return jsonify({"status" : "api jalan!"})
 
 if __name__ == "__main__":
     app.run(debug=True)
