@@ -37,7 +37,7 @@ cursor = db.cursor()
 
 app = Flask(__name__)
 
-CORS(app, origins=["http://localhost:8000", "http://127.0.0.1:8000"])
+CORS(app, origins=["http://localhost:8000", "http://127.0.0.1:8000" , "https://tajoki.my.id"])
 
 
 # Load model SVM dan TF-IDF Vectorizer
