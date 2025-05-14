@@ -37,8 +37,11 @@ cursor = db.cursor()
 
 app = Flask(__name__)
 
-CORS(app, origins=["http://localhost:8000", "http://127.0.0.1:8000" , "https://tajoki.my.id"])
-
+CORS(app,
+     origins=["http://localhost:8000", "http://127.0.0.1:8000", "https://tajoki.my.id"],
+     methods=["GET", "POST", "OPTIONS"],
+     allow_headers=["Content-Type", "Authorization"],
+     supports_credentials=True)
 
 # Load model SVM dan TF-IDF Vectorizer
 with open("vectorizer.pkl", "rb") as vec_file:
