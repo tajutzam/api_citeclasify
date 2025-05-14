@@ -433,7 +433,7 @@ def get_data():
     
 @app.route("/")
 def test_api():
-    return jsonify({"status" : "api jalan!"})
+    return jsonify({"status" : "api jalan v1!"})
 
 if __name__ == "__main__":
     app.run(debug=True)
