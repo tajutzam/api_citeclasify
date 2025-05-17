@@ -337,8 +337,8 @@ def test_model():
         df = pd.read_csv(DATASET_PATH)
 
         # Ensure the necessary columns exist
-        if "clean_text_translated" not in df.columns or "label" not in df.columns:
-            return jsonify({"error": "Dataset must contain 'clean_text_translated' and 'label' columns"}), 400
+        if "processed_text" not in df.columns or "label" not in df.columns:
+            return jsonify({"error": "Dataset must contain 'processed_text' and 'label' columns"}), 400
 
         # Convert labels to integers
         label_encoder = LabelEncoder()
@@ -346,11 +346,11 @@ def test_model():
 
         # Use the entire dataset if test_size == 1.0, otherwise, use a portion
         if test_size == 1.0:
-            X_test = df["clean_text_translated"]
+            X_test = df["processed_text"]
             y_test = df["label"]
         else:
             _, X_test, _, y_test = train_test_split(
-                df["clean_text_translated"], df["label"], test_size=test_size, random_state=42
+                df["processed_text"], df["label"], test_size=test_size, random_state=42
             )
 
         # Convert text to TF-IDF
