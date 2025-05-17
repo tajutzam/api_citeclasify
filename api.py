@@ -44,10 +44,10 @@ CORS(app,
      supports_credentials=True)
 
 # Load model SVM dan TF-IDF Vectorizer
-with open("vectorizer.pkl", "rb") as vec_file:
+with open("vectorizer_fix.pkl", "rb") as vec_file:
     vectorizer = pickle.load(vec_file)
 
-with open("svm_model_new.pkl", "rb") as model_file:
+with open("svm_model_fix.pkl", "rb") as model_file:
     svm_model = pickle.load(model_file)
 
 # Load dataset
