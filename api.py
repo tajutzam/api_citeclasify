@@ -432,7 +432,7 @@ def get_data():
         df = pd.read_csv(DATASET_PATH)
 
         if "Unnamed: 0" in df.columns:
-            df.drop(columns=["Unnamed: 0" , 'processed_text' , 'translated'], inplace=True)
+            df.drop(columns=["Unnamed: 0"], inplace=True)
 
         # Konversi DataFrame ke list of dicts
         data = df.to_dict(orient="records")
