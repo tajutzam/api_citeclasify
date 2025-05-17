@@ -51,7 +51,7 @@ with open("svm_model_new.pkl", "rb") as model_file:
     svm_model = pickle.load(model_file)
 
 # Load dataset
-DATASET_PATH = "dataset/data_test.csv"
+DATASET_PATH = "dataset/data_test_asli.csv"
 CONF_MATRIX_IMG_PATH = "upload/"
 
 
