@@ -320,6 +320,15 @@ def get_pdf_highlight(filename):
 @app.route("/test", methods=["POST"])
 def test_model():
     try:
+
+        db = mysql.connector.connect(
+            host=os.getenv('DB_HOST'),
+            user=os.getenv('DB_USER'),
+            password=os.getenv('DB_PASS'),
+            database=os.getenv('DB_NAME')
+        )
+        cursor = db.cursor()
+
         # Get test_size from the request, default is 1.0
         data = request.get_json()
         test_size = float(data.get("test_size", 1.0))  # Default to use all data
@@ -401,6 +410,9 @@ def test_model():
         
         db.commit()
 
+        cursor.close()
+        db.close()
+
         # Return the results
         return jsonify({
             "test_size": test_size,
@@ -433,7 +445,7 @@ def get_data():
     
 @app.route("/")
 def test_api():
-    return jsonify({"status" : "api jalan v1!"})
+    return jsonify({"status" : "api jalan v2!"})
 
 if __name__ == "__main__":
     app.run(debug=True)
