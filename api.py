@@ -43,6 +43,52 @@ CORS(app,
      allow_headers=["Content-Type", "Authorization"],
      supports_credentials=True)
 
+UPLOAD_FOLDER = 'uploads'
+
+
+
+import re
+import nltk
+nltk.download('stopwords')
+from nltk.corpus import stopwords
+
+stop_words_id = set(stopwords.words('indonesian'))
+conjunctions_id = {
+    "dan", "atau", "karena", "tetapi", "meskipun", "selain", "bahwa", "sehingga", "dan juga",
+    "agar", "maka", "namun", "walaupun", "jadi", "untuk", "melainkan", "di mana", "padahal",
+    "baik", "maupun", "sebab", "yaitu", "meskipun demikian", "dengan demikian", "hingga", "karena itu",
+    "sampai", "sebelum", "sesudah", "dan sebagainya", "selama", "walau", "sekiranya", "berarti",
+    "misalnya", "selanjutnya", "jika", "dan lain-lain", "di samping itu", "kemudian", "oleh karena itu"
+}
+# stop_words_id.update(conjunctions_id)
+
+# 1. Cleaning
+def clean_text(text):
+    text = re.sub(r"\[\d+\]|\([^)]+et al\., \d{4}\)|\{\d+\}", "", text)  # hapus citation style
+    text = re.sub(r"[^a-zA-Z\s]", "", text)  # hanya huruf
+    text = re.sub(r"\s+", " ", text).strip()  # hapus spasi berlebih
+    return text
+
+# 2. Case Folding
+def case_folding(text):
+    return text.lower()
+
+# 3. Tokenisasi
+def tokenize(text):
+    return text.split()
+
+# 4. Stopword Removal
+def remove_stopwords(tokens):
+    return [word for word in tokens if word not in conjunctions_id]
+
+
+def preprocess(text):
+    cleaned = clean_text(text)
+    folded = case_folding(cleaned)
+    tokens = tokenize(folded)
+    filtered = remove_stopwords(tokens)
+    return ' '.join(filtered)
+
 # Load model SVM dan TF-IDF Vectorizer
 with open("vectorizer_fix.pkl", "rb") as vec_file:
     vectorizer = pickle.load(vec_file)
@@ -284,9 +330,11 @@ def predict():
         data = request.get_json()
         input_text = data.get("text", "")
 
+        input_text = preprocess(input_text)
+
         # Konversi teks ke TF-IDF
         tfidf_input = vectorizer.transform([input_text])
-
+        
         # Prediksi label
         prediction = svm_model.predict(tfidf_input)[0]
         if isinstance(prediction, (np.int64, np.int32)):
@@ -443,6 +491,57 @@ def get_data():
     except Exception as e:
         return jsonify({"error": str(e)}), 400
     
+def extract_keywords_from_pdf(pdf_path):
+    """Ekstrak keyword dari file PDF"""
+    doc = fitz.open(pdf_path)
+    keywords = []
+
+    for page in doc:
+        lines = page.get_text().split('\n')
+
+
+        for i, line in enumerate(lines):
+
+            # Pola 1: "Kata Kunci" atau "Keywords" dalam satu baris dengan kata kunci
+            match_inline = re.search(r'(?i)(kata kunci|keywords)\s*[:：]?\s*(.+)', line)
+            if match_inline:
+                raw_keywords = match_inline.group(2)
+                keywords = re.split(r',|;', raw_keywords)
+                return [kw.strip() for kw in keywords if kw.strip()]
+
+            if re.search(r'(?i)^kata kunci$|^keywords$', line.strip()):
+                if i + 1 < len(lines):
+                    raw_keywords = lines[i + 1]
+                    keywords = re.split(r',|;', raw_keywords)
+                    return [kw.strip() for kw in keywords if kw.strip()]
+
+    return keywords
+
+
+@app.route('/extract-keywords', methods=['POST'])
+def extract_keywords():
+    if 'file' not in request.files:
+        return jsonify({"error": "No file part"}), 400
+
+    file = request.files['file']
+
+    if file.filename == '':
+        return jsonify({"error": "No selected file"}), 400
+
+    if file and file.filename.lower().endswith('.pdf'):
+        filepath = os.path.join(UPLOAD_FOLDER, file.filename)
+        file.save(filepath)
+
+        try:
+            keywords = extract_keywords_from_pdf(filepath)
+            os.remove(filepath)  # Hapus setelah ekstraksi
+            return jsonify({"keywords": keywords})
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+
+    return jsonify({"error": "Invalid file type"}), 400
+
+
 @app.route("/")
 def test_api():
     return jsonify({"status" : "api jalan v2!"})
